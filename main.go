@@ -16,5 +16,33 @@
 
 package main
 
+import (
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
+)
+
+var App Application
+
+func init() {
+	App.Init(9595)
+}
+
 func main() {
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, syscall.SIGTERM, syscall.SIGINT)
+
+	go func() {
+		err := App.Start()
+		if err != nil {
+			log.Fatalf("Failed to start application: %v", err)
+		}
+	}()
+
+	s := <-signals
+
+	log.Printf("Gracefully shutting down service due to os signal '%v'", s)
+
+	App.Stop()
 }
