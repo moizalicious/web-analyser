@@ -26,7 +26,7 @@ import (
 var App Application
 
 func init() {
-	App.Init(9595)
+	App.Init(8080)
 }
 
 func main() {
@@ -36,13 +36,13 @@ func main() {
 	go func() {
 		err := App.Start()
 		if err != nil {
-			log.Fatalf("Failed to start application: %v", err)
+			log.Fatalf("Failed to start application: error - %v\n", err)
 		}
 	}()
 
 	s := <-signals
 
-	log.Printf("Gracefully shutting down service due to os signal '%v'", s)
+	log.Printf("Gracefully shutting down service due to os signal '%v'\n", s)
 
 	App.Stop()
 }
