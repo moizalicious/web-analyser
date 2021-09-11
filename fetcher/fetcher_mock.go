@@ -9,8 +9,8 @@ import (
 
 type mockFetcher struct{}
 
-func (m mockFetcher) Fetch(url string) (*html.Node, error) {
-	file, err := ioutil.ReadFile("res/test.html")
+func (m mockFetcher) Fetch(filePath string) (*html.Node, error) {
+	file, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}

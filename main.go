@@ -27,7 +27,8 @@ import (
 var App Application
 
 func init() {
-	App.Init(8080, fetcher.NewMockFetcher())
+	// TODO - add release mode and debug mode
+	App.Init(8080, fetcher.NewFetcher())
 }
 
 func main() {

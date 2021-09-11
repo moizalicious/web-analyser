@@ -3,20 +3,17 @@ package main
 import (
 	"testing"
 	"web-analyser/fetcher"
-
-	"github.com/stretchr/testify/assert"
 )
 
-func TestExtractPageTitle(t *testing.T) {
+func TestCrawl(t *testing.T) {
 	f := fetcher.NewMockFetcher()
 
-	doc, err := f.Fetch("http://localhost:8080")
+	document, err := f.Fetch("res/test.html")
 	if err != nil {
 		t.Error(err)
 	}
 
-	expected := "Test File Title"
-	actual, _ := extractPageTitle(doc)
+	info := crawl(document)
 
-	assert.Equal(t, expected, actual)
+	t.Log("OUTPUT:", info)
 }

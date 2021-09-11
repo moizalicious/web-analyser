@@ -18,7 +18,7 @@ func (f fetcher) Fetch(url string) (*html.Node, error) {
 
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
-			log.Printf("[WARN] Failed to close response body: error - %v\n", err)
+			log.Printf("[WARNING] Failed to close response body: %v\n", err)
 		}
 	}()
 

@@ -53,13 +53,8 @@ func (a *Application) index(c *gin.Context) {
 			c.AbortWithError(http.StatusInternalServerError, err)
 		}
 
-		title, ok := extractPageTitle(doc)
-		if !ok {
-			log.Println("Title not found")
-		} else {
-			log.Println("Title:", title)
-		}
-
+		info := crawl(doc)
+		log.Println("Crawled Output:", info)
 	}
 
 	c.HTML(
