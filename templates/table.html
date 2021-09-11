@@ -1,0 +1,39 @@
+{{ if .displayResult }}
+<table>
+  <tr>
+    <th>HTML Version</th>
+    <td>{{ .htmlVersion }}</td>
+  </tr>
+  <tr>
+    <th>Page Title</th>
+    <td>{{ .pageTitle }}</td>
+  </tr>
+  <tr>
+    <th>Headings</th>
+    <td>{{ .h1Count }} H1 Headings</td>
+    <td>{{ .h2Count }} H2 Headings</td>
+    <td>{{ .h3Count }} H3 Headings</td>
+    <td>{{ .h4Count }} H4 Headings</td>
+    <td>{{ .h5Count }} H5 Headings</td>
+    <td>{{ .h6Count }} H6 Headings</td>
+  </tr>
+  <tr>
+    <th>Internal Link Count</th>
+    <td>{{ .internalLinkCount }}</td>
+  </tr>
+  <tr>
+    <th>External Link Count</th>
+    <td>{{ .externalLinkCount }}</td>
+  </tr>
+  <tr>
+    <th>Login Form</th>
+    <td>
+      {{ if .containsLoginForm }}
+      Available
+      {{ else }}
+      Unavailable
+      {{ end }}
+    </td>
+  </tr>
+</table>
+{{ end }}

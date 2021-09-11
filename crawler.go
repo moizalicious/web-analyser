@@ -1,14 +1,21 @@
 package main
 
 import (
+	"errors"
+	"log"
+	"net/url"
+
 	"golang.org/x/net/html"
 )
 
 type pageInfo struct {
 	htmlVersion       string
 	pageTitle         string
-	headings          map[element]int
-	links             []link
+	headingCount      map[element]int
+	internalLinkCount int
+	internalLinks     []string
+	externalLinkCount int
+	externalLinks     []string
 	containsLoginForm bool
 }
 
@@ -37,12 +44,11 @@ const (
 	xhtmlV11             = "-//W3C//DTD XHTML 1.1//EN"
 )
 
-type link struct {
-}
-
 func crawl(document *html.Node) pageInfo {
 	info := pageInfo{}
-	info.headings = make(map[element]int)
+	info.headingCount = make(map[element]int)
+	info.internalLinks = make([]string, 0)
+	info.externalLinks = make([]string, 0)
 
 	var crawler func(*html.Node)
 
@@ -51,26 +57,37 @@ func crawl(document *html.Node) pageInfo {
 		case html.ElementNode:
 			switch n.Data {
 			case string(anchor):
-				// TODO - get link information
+				href, isExteral, err := identifyLinkInfo(n.Attr)
+				if err != nil {
+					log.Printf("[WARNING] Failed to obtain link information from anchor element: %v\n", err)
+				} else if isExteral {
+					info.externalLinks = append(info.externalLinks, href)
+					info.externalLinkCount++
+				} else {
+					info.internalLinks = append(info.internalLinks, href)
+					info.internalLinkCount++
+				}
 
 			case string(form):
 				info.containsLoginForm = true
 
 			case string(title):
-				info.pageTitle = n.FirstChild.Data
+				if n.FirstChild != nil {
+					info.pageTitle = n.FirstChild.Data
+				}
 
 			case string(heading1):
-				info.headings[heading1]++
+				info.headingCount[heading1]++
 			case string(heading2):
-				info.headings[heading2]++
+				info.headingCount[heading2]++
 			case string(heading3):
-				info.headings[heading3]++
+				info.headingCount[heading3]++
 			case string(heading4):
-				info.headings[heading4]++
+				info.headingCount[heading4]++
 			case string(heading5):
-				info.headings[heading5]++
+				info.headingCount[heading5]++
 			case string(heading6):
-				info.headings[heading6]++
+				info.headingCount[heading6]++
 			}
 
 		case html.DoctypeNode:
@@ -91,9 +108,9 @@ func identifyHTMLVersion(attributes []html.Attribute) string {
 	if len(attributes) == 0 {
 		return "HTML 5"
 	} else {
-		for _, v := range attributes {
-			if v.Key == "public" {
-				switch v.Val {
+		for _, a := range attributes {
+			if a.Key == "public" {
+				switch a.Val {
 				case htmlV401Strict:
 					return "HTML v4.01 Strict"
 				case htmlV401Transitional:
@@ -116,4 +133,19 @@ func identifyHTMLVersion(attributes []html.Attribute) string {
 	}
 
 	return ""
+}
+
+func identifyLinkInfo(attributes []html.Attribute) (string, bool, error) {
+	for _, a := range attributes {
+		if a.Key == "href" {
+			return a.Val, isExternalLink(a.Val), nil
+		}
+	}
+
+	return "", false, errors.New("no href attribute available in given list")
+}
+
+func isExternalLink(href string) bool {
+	_, err := url.ParseRequestURI(href)
+	return err != nil
 }

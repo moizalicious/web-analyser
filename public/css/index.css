@@ -1,0 +1,7 @@
+h1 {
+  color: tomato;
+}
+
+tr:nth-child(even) {
+  background-color: #D6EEEE;
+}

@@ -1,5 +1,5 @@
 <form action="/index" method="post">
-  <label for="url">Website URL</label>
+  <label for="url">Website URL:</label>
   <input type="text" name="url" id="url" {{ if .url }} value="{{ .url }}" {{ end }} />
   <input type="submit" value="Get Details" />
 </form>

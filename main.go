@@ -24,11 +24,17 @@ import (
 	"web-analyser/fetcher"
 )
 
-var App Application
+var app application
 
 func init() {
-	// TODO - add release mode and debug mode
-	App.Init(8080, fetcher.NewFetcher())
+	// TODO - complete all basic functionality
+	// TODO - add unit tests and benchmarks
+	// TODO - add release mode and debug mode (Use custom router rather than the default)
+	// TODO - get port from OS variables (also have default port)
+	// TODO - Add license in file headers
+	// TODO - Comment all files
+	// TODO - deploy to Heroku
+	app.Init(8080, fetcher.NewFetcher())
 }
 
 func main() {
@@ -36,9 +42,9 @@ func main() {
 	signal.Notify(signals, syscall.SIGTERM, syscall.SIGINT)
 
 	go func() {
-		err := App.Start()
+		err := app.Start()
 		if err != nil {
-			log.Fatalf("Failed to start application: error - %v\n", err)
+			log.Fatalf("Failed to start application: %v\n", err)
 		}
 	}()
 
@@ -46,5 +52,5 @@ func main() {
 
 	log.Printf("Gracefully shutting down service due to os signal '%v'\n", s)
 
-	App.Stop()
+	app.Stop()
 }

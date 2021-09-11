@@ -4,10 +4,20 @@
 {{ template "header.html" . }}
 
 <body>
-    
-    <h1>Hello Go & Gin</h1>
+    <!-- TODO - Add CSS & Favicon -->
+    <h1>Welcome To Web Analyser</h1>
+
+    <p>Please enter a valid URL and click on the 'Get Details' button to analyse the url's HTML content.</p>
+    <p>Note that the entire url along with the hypertext protocol needs to be inserted (i.e. https://www.google.com is
+        valid but www.google.com is not valid)</p>
 
     {{ template "form.html" . }}
+
+    {{ if .warning }}
+    <p>{{ .warning }}</p>
+    {{ end }}
+
+    {{ template "table.html" . }}
 
 </body>
 
