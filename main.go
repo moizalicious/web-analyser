@@ -21,12 +21,13 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"web-analyser/fetcher"
 )
 
 var App Application
 
 func init() {
-	App.Init(8080)
+	App.Init(8080, fetcher.NewMockFetcher())
 }
 
 func main() {

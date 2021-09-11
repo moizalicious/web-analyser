@@ -4,18 +4,21 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"web-analyser/fetcher"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Application struct {
-	Router *gin.Engine
-	Port   int
+	Router  *gin.Engine
+	Port    int
+	Fetcher fetcher.Fetcher
 }
 
-func (a *Application) Init(port int) {
+func (a *Application) Init(port int, f fetcher.Fetcher) {
 	a.Port = port
 	a.Router = gin.Default()
+	a.Fetcher = f
 
 	a.Router.LoadHTMLGlob("templates/*.html")
 
@@ -37,13 +40,26 @@ func (a *Application) redirectToIndex(c *gin.Context) {
 }
 
 func (a *Application) index(c *gin.Context) {
-	log.Printf("URL Value From Form: %v", c.PostForm("url"))
-
 	parameters := gin.H{}
 	parameters["title"] = "Web Analyser"
 
 	if url := c.PostForm("url"); url != "" {
 		parameters["url"] = url
+
+		log.Println("Provided URL:", url)
+
+		doc, err := a.Fetcher.Fetch(url)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+		}
+
+		title, ok := extractPageTitle(doc)
+		if !ok {
+			log.Println("Title not found")
+		} else {
+			log.Println("Title:", title)
+		}
+
 	}
 
 	c.HTML(
