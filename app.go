@@ -1,3 +1,19 @@
+/*
+   Copyright 2021 github.com/moizalicious
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
 package main
 
 import (
@@ -11,27 +27,27 @@ import (
 )
 
 type application struct {
-	Router  *gin.Engine
-	Port    int
-	Fetcher fetcher.Fetcher
+	router  *gin.Engine
+	port    int
+	fetcher fetcher.Fetcher
 }
 
 func (a *application) Init(port int, f fetcher.Fetcher) {
-	a.Port = port
-	a.Router = gin.Default()
-	a.Fetcher = f
+	a.port = port
+	a.router = gin.Default()
+	a.fetcher = f
 
-	a.Router.Static("/public", "public")
-	a.Router.LoadHTMLGlob("templates/*.html")
+	a.router.Static("/public", "public")
+	a.router.LoadHTMLGlob("templates/*.html")
 
-	a.Router.GET("/", a.redirectToIndex)
-	a.Router.GET("/index", a.index)
-	a.Router.POST("/index", a.index)
-	a.Router.GET("/ping", a.ping)
+	a.router.GET("/", a.redirectToIndex)
+	a.router.GET("/index", a.index)
+	a.router.POST("/index", a.index)
+	a.router.GET("/ping", a.ping)
 }
 
 func (a *application) Start() error {
-	return a.Router.Run(":" + strconv.Itoa(a.Port))
+	return a.router.Run(":" + strconv.Itoa(a.port))
 }
 
 func (a *application) Stop() {
@@ -63,7 +79,7 @@ func (a *application) index(c *gin.Context) {
 
 	parameters["url"] = url
 
-	if _, err := netURL.ParseRequestURI(url); err != nil {
+	if u, err := netURL.Parse(url); err != nil || u.Host == "" || u.Scheme == "" {
 		parameters["warning"] = "The provided URL is not valid"
 		c.HTML(http.StatusBadRequest, "index.html", parameters)
 
@@ -72,7 +88,7 @@ func (a *application) index(c *gin.Context) {
 
 	log.Println("Provided URL:", url)
 
-	document, err := a.Fetcher.Fetch(url)
+	document, err := a.fetcher.Fetch(url)
 	if err != nil {
 		parameters["warning"] = "The provided URL does not exist/is not accessible at the moment"
 		c.HTML(http.StatusInternalServerError, "index.html", parameters)
@@ -80,12 +96,30 @@ func (a *application) index(c *gin.Context) {
 		return
 	}
 
-	info := crawl(document)
+	info := crawl(document, url)
 	log.Println("Crawled Output:", info)
 
 	parameters["displayResult"] = true
 	parameters["htmlVersion"] = info.htmlVersion
 	parameters["pageTitle"] = info.pageTitle
+
+	parameters["h1Count"] = info.headingCount.h1
+	parameters["h2Count"] = info.headingCount.h2
+	parameters["h3Count"] = info.headingCount.h3
+	parameters["h4Count"] = info.headingCount.h4
+	parameters["h5Count"] = info.headingCount.h5
+	parameters["h6Count"] = info.headingCount.h6
+
+	parameters["accessibleInternalLinkCount"] = info.accessibleInternalLinks.count
+	parameters["accessibleInternalLinks"] = info.accessibleInternalLinks.links
+
+	parameters["unaccessibleInternalLinkCount"] = info.unaccessibleInternalLinks.count
+	parameters["unaccessibleInternalLinks"] = info.unaccessibleInternalLinks.links
+
+	parameters["externalLinkCount"] = info.externalLinks.count
+	parameters["externalLinks"] = info.externalLinks.links
+
+	parameters["containsForm"] = info.containsForm
 
 	c.HTML(http.StatusOK, "index.html", parameters)
 }

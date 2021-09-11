@@ -14,6 +14,18 @@
    limitations under the License.
 */
 
+// TODO - add unit tests and benchmarks
+// TODO - add release mode and debug mode (Use custom router rather than the default)
+// TODO - get port from OS variables (also have default port)
+// TODO - Add license in file headers
+// TODO - deploy to Heroku
+
+// TODO - Make UI look somewhat bearable
+// TODO - Comment all files
+// TODO - clean all the code
+// TODO - update readme
+// TODO - create google document
+
 package main
 
 import (
@@ -27,13 +39,6 @@ import (
 var app application
 
 func init() {
-	// TODO - complete all basic functionality
-	// TODO - add unit tests and benchmarks
-	// TODO - add release mode and debug mode (Use custom router rather than the default)
-	// TODO - get port from OS variables (also have default port)
-	// TODO - Add license in file headers
-	// TODO - Comment all files
-	// TODO - deploy to Heroku
 	app.Init(8080, fetcher.NewFetcher())
 }
 

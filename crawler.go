@@ -1,3 +1,19 @@
+/*
+   Copyright 2021 github.com/moizalicious
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
 package main
 
 import (
@@ -9,29 +25,46 @@ import (
 )
 
 type pageInfo struct {
-	htmlVersion       string
-	pageTitle         string
-	headingCount      map[element]int
-	internalLinkCount int
-	internalLinks     []string
-	externalLinkCount int
-	externalLinks     []string
-	containsLoginForm bool
+	htmlVersion               string
+	pageTitle                 string
+	headingCount              headingCounts
+	accessibleInternalLinks   linkInfo
+	unaccessibleInternalLinks linkInfo
+	externalLinks             linkInfo
+	containsForm              bool
 }
 
-type element string
+type headingCounts struct {
+	h1 int
+	h2 int
+	h3 int
+	h4 int
+	h5 int
+	h6 int
+}
+
+type linkInfo struct {
+	count int
+	links []string
+}
+
+type link struct {
+	href         string
+	isAccessible bool
+	isExternal   bool
+}
 
 const (
-	anchor element = "a"
-	form   element = "form"
-	title  element = "title"
+	anchor = "a"
+	form   = "form"
+	title  = "title"
 
-	heading1 element = "h1"
-	heading2 element = "h2"
-	heading3 element = "h3"
-	heading4 element = "h4"
-	heading5 element = "h5"
-	heading6 element = "h6"
+	heading1 = "h1"
+	heading2 = "h2"
+	heading3 = "h3"
+	heading4 = "h4"
+	heading5 = "h5"
+	heading6 = "h6"
 )
 
 const (
@@ -44,11 +77,11 @@ const (
 	xhtmlV11             = "-//W3C//DTD XHTML 1.1//EN"
 )
 
-func crawl(document *html.Node) pageInfo {
+func crawl(document *html.Node, host string) pageInfo {
 	info := pageInfo{}
-	info.headingCount = make(map[element]int)
-	info.internalLinks = make([]string, 0)
-	info.externalLinks = make([]string, 0)
+	info.accessibleInternalLinks.links = make([]string, 0)
+	info.unaccessibleInternalLinks.links = make([]string, 0)
+	info.externalLinks.links = make([]string, 0)
 
 	var crawler func(*html.Node)
 
@@ -56,38 +89,41 @@ func crawl(document *html.Node) pageInfo {
 		switch n.Type {
 		case html.ElementNode:
 			switch n.Data {
-			case string(anchor):
-				href, isExteral, err := identifyLinkInfo(n.Attr)
+			case anchor:
+				l, err := identifyLinkInfo(n.Attr, host)
 				if err != nil {
 					log.Printf("[WARNING] Failed to obtain link information from anchor element: %v\n", err)
-				} else if isExteral {
-					info.externalLinks = append(info.externalLinks, href)
-					info.externalLinkCount++
+				} else if l.isExternal {
+					info.externalLinks.links = append(info.externalLinks.links, l.href)
+					info.externalLinks.count++
+				} else if l.isAccessible {
+					info.accessibleInternalLinks.links = append(info.accessibleInternalLinks.links, l.href)
+					info.accessibleInternalLinks.count++
 				} else {
-					info.internalLinks = append(info.internalLinks, href)
-					info.internalLinkCount++
+					info.unaccessibleInternalLinks.links = append(info.unaccessibleInternalLinks.links, l.href)
+					info.unaccessibleInternalLinks.count++
 				}
 
-			case string(form):
-				info.containsLoginForm = true
+			case form:
+				info.containsForm = true
 
-			case string(title):
+			case title:
 				if n.FirstChild != nil {
 					info.pageTitle = n.FirstChild.Data
 				}
 
-			case string(heading1):
-				info.headingCount[heading1]++
-			case string(heading2):
-				info.headingCount[heading2]++
-			case string(heading3):
-				info.headingCount[heading3]++
-			case string(heading4):
-				info.headingCount[heading4]++
-			case string(heading5):
-				info.headingCount[heading5]++
-			case string(heading6):
-				info.headingCount[heading6]++
+			case heading1:
+				info.headingCount.h1++
+			case heading2:
+				info.headingCount.h2++
+			case heading3:
+				info.headingCount.h3++
+			case heading4:
+				info.headingCount.h4++
+			case heading5:
+				info.headingCount.h5++
+			case heading6:
+				info.headingCount.h6++
 			}
 
 		case html.DoctypeNode:
@@ -135,17 +171,46 @@ func identifyHTMLVersion(attributes []html.Attribute) string {
 	return ""
 }
 
-func identifyLinkInfo(attributes []html.Attribute) (string, bool, error) {
+func identifyLinkInfo(attributes []html.Attribute, host string) (link, error) {
 	for _, a := range attributes {
 		if a.Key == "href" {
-			return a.Val, isExternalLink(a.Val), nil
+			isAccessible, isExternal, err := extractLinkInfo(a.Val, host)
+			if err != nil {
+				return link{}, err
+			}
+
+			l := link{}
+			l.href = a.Val
+			l.isAccessible = isAccessible
+			l.isExternal = isExternal
+
+			return l, nil
 		}
 	}
 
-	return "", false, errors.New("no href attribute available in given list")
+	return link{}, errors.New("no href attribute available in given list")
 }
 
-func isExternalLink(href string) bool {
-	_, err := url.ParseRequestURI(href)
-	return err != nil
+// first bool isAccessible
+// second bool isExternal
+func extractLinkInfo(href string, host string) (bool, bool, error) {
+	h, err := url.Parse(href)
+	if err != nil || h.Host == "" || h.Scheme == "" {
+		// href link is not accessible, therefore it is not even external
+		return false, false, nil
+	}
+
+	x, err := url.Parse(host)
+	if err != nil || h.Host == "" || h.Scheme == "" {
+		// comparer link must be valid, ideally this should never happen
+		return false, false, errors.New("provided host url is invalid")
+	}
+
+	if h.Host == x.Host {
+		// if both hosts are the same, then the link is accessible but not external
+		return true, false, nil
+	} else {
+		// if both are different, then the link is accessible and external
+		return true, true, nil
+	}
 }

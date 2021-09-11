@@ -10,25 +10,52 @@
   </tr>
   <tr>
     <th>Headings</th>
-    <td>{{ .h1Count }} H1 Headings</td>
-    <td>{{ .h2Count }} H2 Headings</td>
-    <td>{{ .h3Count }} H3 Headings</td>
-    <td>{{ .h4Count }} H4 Headings</td>
-    <td>{{ .h5Count }} H5 Headings</td>
-    <td>{{ .h6Count }} H6 Headings</td>
-  </tr>
-  <tr>
-    <th>Internal Link Count</th>
-    <td>{{ .internalLinkCount }}</td>
-  </tr>
-  <tr>
-    <th>External Link Count</th>
-    <td>{{ .externalLinkCount }}</td>
-  </tr>
-  <tr>
-    <th>Login Form</th>
     <td>
-      {{ if .containsLoginForm }}
+      {{ .h1Count }} &lt;h1/&gt; Heading(s)
+      <br />
+      {{ .h2Count }} &lt;h2/&gt; Heading(s)
+      <br />
+      {{ .h3Count }} &lt;h3/&gt; Heading(s)
+      <br />
+      {{ .h4Count }} &lt;h4/&gt; Heading(s)
+      <br />
+      {{ .h5Count }} &lt;h5/&gt; Heading(s)
+      <br />
+      {{ .h6Count }} &lt;h6/&gt; Heading(s)
+      <br />
+    </td>
+  </tr>
+  <tr>
+    <th>Unaccessible Internal Links ({{ .unaccessibleInternalLinkCount }})</th>
+    <td>
+      {{ range $val := .unaccessibleInternalLinks }}
+      <a href="{{ $val }}">{{ $val }}</a>
+      <br />
+      {{ end }}
+    </td>
+  </tr>
+  <tr>
+    <th>Accessible Internal Links ({{ .accessibleInternalLinkCount }})</th>
+    <td>
+      {{ range $val := .accessibleInternalLinks }}
+      <a href="{{ $val }}">{{ $val }}</a>
+      <br />
+      {{ end }}
+    </td>
+  </tr>
+  <tr>
+    <th>External Links ({{ .externalLinkCount }})</th>
+    <td>
+      {{ range $val := .externalLinks }}
+      <a href="{{ $val }}">{{ $val }}</a>
+      <br />
+      {{ end }}
+    </td>
+  </tr>
+  <tr>
+    <th>Form Element</th>
+    <td>
+      {{ if .containsForm }}
       Available
       {{ else }}
       Unavailable
