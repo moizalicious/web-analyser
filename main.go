@@ -15,9 +15,6 @@
 */
 
 // TODO - add unit tests and benchmarks
-// TODO - add release mode and debug mode (Use custom router rather than the default)
-// TODO - get port from OS variables (also have default port)
-// TODO - Add license in file headers
 // TODO - deploy to Heroku
 
 // TODO - Make UI look somewhat bearable
@@ -32,14 +29,35 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"web-analyser/fetcher"
+
+	"github.com/gin-gonic/gin"
 )
 
 var app application
 
 func init() {
-	app.Init(8080, fetcher.NewFetcher())
+	port := 8080
+
+	portString := os.Getenv("APP_PORT")
+	if portString != "" {
+		appPort, err := strconv.Atoi(portString)
+		if err != nil {
+			log.Printf("[WARNING] Invalid $APP_PORT environment variable defined ':%v', "+
+				"switching to default port ':8080': %v", portString, err)
+		} else {
+			port = appPort
+		}
+	}
+
+	mode := os.Getenv("APP_MODE")
+	if mode == "" {
+		mode = gin.DebugMode
+	}
+
+	app.Init(port, mode, fetcher.NewFetcher())
 }
 
 func main() {

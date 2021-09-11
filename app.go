@@ -32,7 +32,14 @@ type application struct {
 	fetcher fetcher.Fetcher
 }
 
-func (a *application) Init(port int, f fetcher.Fetcher) {
+func (a *application) Init(port int, mode string, f fetcher.Fetcher) {
+	if mode == gin.ReleaseMode {
+		gin.SetMode(gin.ReleaseMode)
+	} else if mode != gin.DebugMode {
+		log.Printf("[WARNING] Invalid $APP_MODE environment variable defined '%v', "+
+			"starting up in default mode '%v'", mode, gin.DebugMode)
+	}
+
 	a.port = port
 	a.router = gin.Default()
 	a.fetcher = f
