@@ -3,7 +3,7 @@ Web analyser is a basic web application that can be used to crawl and identify i
 
 It is written using Go and the [Gin Web Framework](https://github.com/gin-gonic/gin).
 
-# Building From Source (Linux)
+# Building From Source
 Pre-requisites:
 * Git
 * Go 1.16 or higher
@@ -22,7 +22,7 @@ Steps:
 
 # Run Build
 To simply run the web application, execute the generated binary after building:
-```
+```bash
 ~$ ./application
 ```
 
