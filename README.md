@@ -21,7 +21,7 @@ Steps:
 ```
 
 # Run Build
-To simply run the web application, you can execute the following command after building:
+To simply run the web application, execute the generated binary after building:
 ```
 ~$ ./application
 ```
@@ -29,7 +29,7 @@ To simply run the web application, you can execute the following command after b
 Once the application starts running, open the browser and go to `http://localhost:8080` to access the web view.
 
 # Release Mode & Custom Ports
-By default, the application will start running in `DEBUG` mode with port `8080`. This can be configured via environment variables.
+By default, the application will start running in `DEBUG` mode with port `8080`. This can be configured via specific environment variables.
 
 To define a custom application port, an `APP_PORT` environment variable must be set with the custom application port before running:
 ```bash

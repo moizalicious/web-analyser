@@ -14,13 +14,6 @@
    limitations under the License.
 */
 
-// TODO - Make UI look somewhat bearable
-
-// TODO - update readme & github repo
-// TODO - create google document
-
-// TODO - deploy to Heroku
-
 package main
 
 import (

@@ -1,7 +1,3 @@
-h1 {
-  color: tomato;
-}
-
-tr:nth-child(even) {
-  background-color: #D6EEEE;
+#url {
+  min-width: 40.625rem;
 }
