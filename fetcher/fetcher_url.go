@@ -27,23 +27,25 @@ import (
 type urlFetcher struct{}
 
 func (u urlFetcher) Fetch(url string) (*html.Node, error) {
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, fmt.Errorf("error when calling http get: %v", err)
-	}
-
-	log.Println("Response Code:", resp.StatusCode)
-
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			log.Printf("[WARNING] Failed to close response body: %v\n", err)
-		}
-	}()
-
-	doc, err := html.Parse(resp.Body)
+	response, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}
 
-	return doc, nil
+	if response.StatusCode == http.StatusNotFound {
+		return nil, fmt.Errorf("http status %v returned", response.Status)
+	}
+
+	defer func() {
+		if err := response.Body.Close(); err != nil {
+			log.Printf("[WARNING] Failed to close response body: %v\n", err)
+		}
+	}()
+
+	document, err := html.Parse(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return document, nil
 }

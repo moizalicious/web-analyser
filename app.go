@@ -36,8 +36,8 @@ func (a *application) Init(port int, mode string, f fetcher.Fetcher) {
 	if mode == gin.ReleaseMode {
 		gin.SetMode(gin.ReleaseMode)
 	} else if mode != gin.DebugMode {
-		log.Printf("[WARNING] Invalid $APP_MODE environment variable defined '%v', "+
-			"starting up in default mode '%v'", mode, gin.DebugMode)
+		log.Printf("[WARNING] Invalid application mode provided '%v', "+
+			"starting up in default mode '%v'\n", mode, gin.DebugMode)
 	}
 
 	a.port = port
@@ -54,11 +54,13 @@ func (a *application) Init(port int, mode string, f fetcher.Fetcher) {
 }
 
 func (a *application) Start() error {
+	log.Println("[INFO] Starting application on port:", a.port)
 	return a.router.Run(":" + strconv.Itoa(a.port))
 }
 
-func (a *application) Stop() {
-	// TODO - add some teardown functionality
+func (a *application) Stop() error {
+	log.Println("[INFO] Shutting down application")
+	return nil
 }
 
 func (a *application) redirectToIndex(c *gin.Context) {
@@ -87,24 +89,25 @@ func (a *application) index(c *gin.Context) {
 	parameters["url"] = url
 
 	if u, err := netURL.Parse(url); err != nil || u.Host == "" || u.Scheme == "" {
-		parameters["warning"] = "The provided URL is not valid"
+		parameters["warning"] = "The provided URL is not valid, please enter a valid host and scheme"
 		c.HTML(http.StatusBadRequest, "index.html", parameters)
 
 		return
 	}
 
-	log.Println("Provided URL:", url)
+	log.Println("[INFO] Provided URL:", url)
 
 	document, err := a.fetcher.Fetch(url)
 	if err != nil {
-		parameters["warning"] = "The provided URL does not exist/is not accessible at the moment"
+		parameters["warning"] = "The provided URL does not exist/is not accessible at the moment: " + err.Error()
 		c.HTML(http.StatusInternalServerError, "index.html", parameters)
 
 		return
 	}
 
 	info := crawl(document, url)
-	log.Println("Crawled Output:", info)
+
+	log.Println("[INFO] Crawled Output:", info)
 
 	parameters["displayResult"] = true
 	parameters["htmlVersion"] = info.htmlVersion
@@ -127,6 +130,8 @@ func (a *application) index(c *gin.Context) {
 	parameters["externalLinks"] = info.externalLinks.links
 
 	parameters["containsForm"] = info.containsForm
+
+	log.Println("[INFO] Parameters Returned:", parameters)
 
 	c.HTML(http.StatusOK, "index.html", parameters)
 }

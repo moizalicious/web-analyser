@@ -21,7 +21,7 @@ import (
 )
 
 type Fetcher interface {
-	Fetch(location string) (*html.Node, error)
+	Fetch(string) (*html.Node, error)
 }
 
 func NewURLFetcher() Fetcher {

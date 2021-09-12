@@ -19,17 +19,80 @@ package main
 import (
 	"testing"
 	"web-analyser/fetcher"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCrawl(t *testing.T) {
-	f := fetcher.NewFileFetcher()
-
-	document, err := f.Fetch("res/test.html")
-	if err != nil {
-		t.Error(err)
+	type testCase struct {
+		name         string
+		fileLocation string
+		mockURL      string
+		expected     documentInfo
 	}
 
-	info := crawl(document, "res/test.html")
+	f := fetcher.NewFileFetcher()
 
-	t.Log("OUTPUT:", info)
+	testCases := []testCase{
+		{
+			name:         "basic_crawl_test",
+			fileLocation: "res/test.html",
+			mockURL:      "https://www.google.com",
+			expected: documentInfo{
+				htmlVersion: "HTML 5",
+				pageTitle:   "Test Page",
+				headingCount: headingCounts{
+					h1: 1,
+					h2: 1,
+					h3: 1,
+					h4: 1,
+					h5: 1,
+					h6: 1,
+				},
+				accessibleInternalLinks: linkInfo{
+					count: 2,
+					links: []string{
+						"https://www.google.com",
+						"https://www.google.com/test",
+					},
+				},
+				unaccessibleInternalLinks: linkInfo{
+					count: 3,
+					links: []string{"#Home", "/test", "/"},
+				},
+				externalLinks: linkInfo{
+					count: 2,
+					links: []string{
+						"https://www.w3schools.com",
+						"https://www.youtube.com",
+					},
+				},
+				containsForm: true,
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			document, err := f.Fetch(testCase.fileLocation)
+			if err != nil {
+				t.Error("Failed to fetch document from given file location:", err)
+			}
+
+			actual := crawl(document, testCase.mockURL)
+			assert.Equal(t, testCase.expected, actual)
+		})
+	}
+}
+
+func BenchmarkCrawl(b *testing.B) {
+	sampleURL := "https://www.google.com"
+	document, err := fetcher.NewFileFetcher().Fetch("res/test.html")
+	if err != nil {
+		b.Error("Failed to fetch HTML content of the provided file:", err)
+	}
+
+	for i := 0; i < b.N; i++ {
+		crawl(document, sampleURL)
+	}
 }

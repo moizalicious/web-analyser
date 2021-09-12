@@ -31,10 +31,10 @@ func (f fileFetcher) Fetch(filePath string) (*html.Node, error) {
 		return nil, err
 	}
 
-	doc, err := html.Parse(bytes.NewReader(file))
+	document, err := html.Parse(bytes.NewReader(file))
 	if err != nil {
 		return nil, err
 	}
 
-	return doc, nil
+	return document, nil
 }

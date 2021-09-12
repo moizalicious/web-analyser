@@ -19,12 +19,12 @@ package main
 import (
 	"errors"
 	"log"
-	"net/url"
+	netURL "net/url"
 
 	"golang.org/x/net/html"
 )
 
-type pageInfo struct {
+type documentInfo struct {
 	htmlVersion               string
 	pageTitle                 string
 	headingCount              headingCounts
@@ -77,8 +77,8 @@ const (
 	xhtmlV11             = "-//W3C//DTD XHTML 1.1//EN"
 )
 
-func crawl(document *html.Node, host string) pageInfo {
-	info := pageInfo{}
+func crawl(document *html.Node, url string) documentInfo {
+	info := documentInfo{}
 	info.accessibleInternalLinks.links = make([]string, 0)
 	info.unaccessibleInternalLinks.links = make([]string, 0)
 	info.externalLinks.links = make([]string, 0)
@@ -88,11 +88,12 @@ func crawl(document *html.Node, host string) pageInfo {
 	crawler = func(n *html.Node) {
 		switch n.Type {
 		case html.ElementNode:
+
 			switch n.Data {
 			case anchor:
-				l, err := identifyLinkInfo(n.Attr, host)
+				l, err := identifyLinkInfo(n.Attr, url)
 				if err != nil {
-					log.Printf("[WARNING] Failed to obtain link information from anchor element: %v\n", err)
+					log.Println("[WARNING] Failed to obtain link information from anchor element:", err)
 				} else if l.isExternal {
 					info.externalLinks.links = append(info.externalLinks.links, l.href)
 					info.externalLinks.count++
@@ -144,9 +145,9 @@ func identifyHTMLVersion(attributes []html.Attribute) string {
 	if len(attributes) == 0 {
 		return "HTML 5"
 	} else {
-		for _, a := range attributes {
-			if a.Key == "public" {
-				switch a.Val {
+		for _, attr := range attributes {
+			if attr.Key == "public" {
+				switch attr.Val {
 				case htmlV401Strict:
 					return "HTML v4.01 Strict"
 				case htmlV401Transitional:
@@ -171,16 +172,16 @@ func identifyHTMLVersion(attributes []html.Attribute) string {
 	return ""
 }
 
-func identifyLinkInfo(attributes []html.Attribute, host string) (link, error) {
-	for _, a := range attributes {
-		if a.Key == "href" {
-			isAccessible, isExternal, err := extractLinkInfo(a.Val, host)
+func identifyLinkInfo(attributes []html.Attribute, url string) (link, error) {
+	for _, attr := range attributes {
+		if attr.Key == "href" {
+			isAccessible, isExternal, err := extractLinkInfo(attr.Val, url)
 			if err != nil {
 				return link{}, err
 			}
 
 			l := link{}
-			l.href = a.Val
+			l.href = attr.Val
 			l.isAccessible = isAccessible
 			l.isExternal = isExternal
 
@@ -193,20 +194,20 @@ func identifyLinkInfo(attributes []html.Attribute, host string) (link, error) {
 
 // first bool isAccessible
 // second bool isExternal
-func extractLinkInfo(href string, host string) (bool, bool, error) {
-	h, err := url.Parse(href)
+func extractLinkInfo(href string, url string) (bool, bool, error) {
+	h, err := netURL.Parse(href)
 	if err != nil || h.Host == "" || h.Scheme == "" {
 		// href link is not accessible, therefore it is not even external
 		return false, false, nil
 	}
 
-	x, err := url.Parse(host)
+	u, err := netURL.Parse(url)
 	if err != nil || h.Host == "" || h.Scheme == "" {
 		// comparer link must be valid, ideally this should never happen
 		return false, false, errors.New("provided host url is invalid")
 	}
 
-	if h.Host == x.Host {
+	if h.Host == u.Host {
 		// if both hosts are the same, then the link is accessible but not external
 		return true, false, nil
 	} else {

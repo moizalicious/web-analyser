@@ -14,15 +14,14 @@
    limitations under the License.
 */
 
-// TODO - return status code of unreachable websites back to user
-// TODO - add unit tests and benchmarks
-// TODO - deploy to Heroku
+// TODO - Comment all files
 
 // TODO - Make UI look somewhat bearable
-// TODO - Comment all files
-// TODO - clean all the code
-// TODO - update readme
+
+// TODO - update readme & github repo
 // TODO - create google document
+
+// TODO - deploy to Heroku
 
 package main
 
@@ -47,7 +46,7 @@ func init() {
 		appPort, err := strconv.Atoi(portString)
 		if err != nil {
 			log.Printf("[WARNING] Invalid $APP_PORT environment variable defined ':%v', "+
-				"switching to default port ':8080': %v", portString, err)
+				"switching to default port ':8080': %v\n", portString, err)
 		} else {
 			port = appPort
 		}
@@ -68,13 +67,16 @@ func main() {
 	go func() {
 		err := app.Start()
 		if err != nil {
-			log.Fatalf("Failed to start application: %v\n", err)
+			log.Fatalln("Failed to start application:", err)
 		}
 	}()
 
 	s := <-signals
 
-	log.Printf("Gracefully shutting down service due to os signal '%v'\n", s)
+	log.Println("[INFO] Attempting to shutdown application due to os signal:", s.String())
 
-	app.Stop()
+	err := app.Stop()
+	if err != nil {
+		log.Fatalln("Failed to shutdown application gracefully", err)
+	}
 }
