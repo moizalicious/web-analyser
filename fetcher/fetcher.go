@@ -32,7 +32,7 @@ func NewURLFetcher() Fetcher {
 	return urlFetcher{}
 }
 
-// NewURLFetcher creates and returns a instance of fileFetcher.
+// NewFileFetcher creates and returns a instance of fileFetcher.
 func NewFileFetcher() Fetcher {
 	return fileFetcher{}
 }
