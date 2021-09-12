@@ -24,13 +24,15 @@ import (
 	"golang.org/x/net/html"
 )
 
-type fetcher struct{}
+type urlFetcher struct{}
 
-func (f fetcher) Fetch(url string) (*html.Node, error) {
+func (u urlFetcher) Fetch(url string) (*html.Node, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("error when calling http get: %v", err)
 	}
+
+	log.Println("Response Code:", resp.StatusCode)
 
 	defer func() {
 		if err := resp.Body.Close(); err != nil {

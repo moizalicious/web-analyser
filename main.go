@@ -14,6 +14,7 @@
    limitations under the License.
 */
 
+// TODO - return status code of unreachable websites back to user
 // TODO - add unit tests and benchmarks
 // TODO - deploy to Heroku
 
@@ -57,7 +58,7 @@ func init() {
 		mode = gin.DebugMode
 	}
 
-	app.Init(port, mode, fetcher.NewFetcher())
+	app.Init(port, mode, fetcher.NewURLFetcher())
 }
 
 func main() {

@@ -21,13 +21,13 @@ import (
 )
 
 type Fetcher interface {
-	Fetch(url string) (*html.Node, error)
+	Fetch(location string) (*html.Node, error)
 }
 
-func NewFetcher() Fetcher {
-	return fetcher{}
+func NewURLFetcher() Fetcher {
+	return urlFetcher{}
 }
 
-func NewMockFetcher() Fetcher {
-	return mockFetcher{}
+func NewFileFetcher() Fetcher {
+	return fileFetcher{}
 }

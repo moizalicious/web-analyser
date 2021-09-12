@@ -22,7 +22,7 @@ import (
 )
 
 func TestCrawl(t *testing.T) {
-	f := fetcher.NewMockFetcher()
+	f := fetcher.NewFileFetcher()
 
 	document, err := f.Fetch("res/test.html")
 	if err != nil {

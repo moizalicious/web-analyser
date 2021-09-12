@@ -23,9 +23,9 @@ import (
 	"golang.org/x/net/html"
 )
 
-type mockFetcher struct{}
+type fileFetcher struct{}
 
-func (m mockFetcher) Fetch(filePath string) (*html.Node, error) {
+func (f fileFetcher) Fetch(filePath string) (*html.Node, error) {
 	file, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		return nil, err
