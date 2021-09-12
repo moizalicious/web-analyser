@@ -52,9 +52,9 @@
     <h4>Page Link Data</h4>
     <table class="table table-bordered">
       <tr>
-        <th>Unaccessible Internal Links ({{ .unaccessibleInternalLinkCount }})</th>
+        <th>Inaccessible Internal Links ({{ .inaccessibleInternalLinkCount }})</th>
         <td>
-          {{ range $val := .unaccessibleInternalLinks }}
+          {{ range $val := .inaccessibleInternalLinks }}
           <a href="{{ $val }}">{{ $val }}</a>
           <br />
           {{ end }}

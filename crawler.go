@@ -31,7 +31,7 @@ type documentInfo struct {
 	pageTitle                 string
 	headingCount              headingCounts
 	accessibleInternalLinks   linkInfo
-	unaccessibleInternalLinks linkInfo
+	inaccessibleInternalLinks linkInfo
 	externalLinks             linkInfo
 	containsForm              bool
 }
@@ -99,7 +99,7 @@ func crawl(document *html.Node, url string) documentInfo {
 	// Initialise documentInfo struct.
 	info := documentInfo{}
 	info.accessibleInternalLinks.links = make([]string, 0)
-	info.unaccessibleInternalLinks.links = make([]string, 0)
+	info.inaccessibleInternalLinks.links = make([]string, 0)
 	info.externalLinks.links = make([]string, 0)
 
 	// Define crawler function.
@@ -125,8 +125,8 @@ func crawl(document *html.Node, url string) documentInfo {
 					info.accessibleInternalLinks.links = append(info.accessibleInternalLinks.links, l.href)
 					info.accessibleInternalLinks.count++
 				} else {
-					info.unaccessibleInternalLinks.links = append(info.unaccessibleInternalLinks.links, l.href)
-					info.unaccessibleInternalLinks.count++
+					info.inaccessibleInternalLinks.links = append(info.inaccessibleInternalLinks.links, l.href)
+					info.inaccessibleInternalLinks.count++
 				}
 			// <form> element.
 			case form:
@@ -223,7 +223,7 @@ func identifyLinkInfo(attributes []html.Attribute, url string) (link, error) {
 }
 
 // extractLinkInfo is used to identify if a href value is
-// accessible or unaccessible, and internal or external.
+// accessible or inaccessible, and internal or external.
 func extractLinkInfo(href string, url string) (isAccessible bool, isExternal bool, err error) {
 	h, err := netURL.Parse(href)
 	if err != nil || h.Host == "" || h.Scheme == "" {

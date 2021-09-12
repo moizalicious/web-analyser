@@ -148,8 +148,8 @@ func (a *application) index(c *gin.Context) {
 	parameters["accessibleInternalLinkCount"] = info.accessibleInternalLinks.count
 	parameters["accessibleInternalLinks"] = info.accessibleInternalLinks.links
 
-	parameters["unaccessibleInternalLinkCount"] = info.unaccessibleInternalLinks.count
-	parameters["unaccessibleInternalLinks"] = info.unaccessibleInternalLinks.links
+	parameters["inaccessibleInternalLinkCount"] = info.inaccessibleInternalLinks.count
+	parameters["inaccessibleInternalLinks"] = info.inaccessibleInternalLinks.links
 
 	parameters["externalLinkCount"] = info.externalLinks.count
 	parameters["externalLinks"] = info.externalLinks.links

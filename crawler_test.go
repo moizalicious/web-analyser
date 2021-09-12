@@ -56,7 +56,7 @@ func TestCrawl(t *testing.T) {
 						"https://www.google.com/test",
 					},
 				},
-				unaccessibleInternalLinks: linkInfo{
+				inaccessibleInternalLinks: linkInfo{
 					count: 3,
 					links: []string{"#Home", "/test", "/"},
 				},
