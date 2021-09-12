@@ -23,8 +23,11 @@ import (
 	"golang.org/x/net/html"
 )
 
+// fileFetcher is the implementation of Fetcher to
+// fetch and parse an HTML document from a local file.
 type fileFetcher struct{}
 
+// Fetch and parse a HTML document in the given path.
 func (f fileFetcher) Fetch(filePath string) (*html.Node, error) {
 	file, err := ioutil.ReadFile(filePath)
 	if err != nil {

@@ -24,16 +24,15 @@ import (
 	"golang.org/x/net/html"
 )
 
+// urlFetcher is the implementation of Fetcher to
+// fetch and parse an HTML document from a URL.
 type urlFetcher struct{}
 
+// Fetch and parse a HTML document from the provided URL.
 func (u urlFetcher) Fetch(url string) (*html.Node, error) {
 	response, err := http.Get(url)
 	if err != nil {
 		return nil, err
-	}
-
-	if response.StatusCode == http.StatusNotFound {
-		return nil, fmt.Errorf("http status %v returned", response.Status)
 	}
 
 	defer func() {
@@ -41,6 +40,10 @@ func (u urlFetcher) Fetch(url string) (*html.Node, error) {
 			log.Printf("[WARNING] Failed to close response body: %v\n", err)
 		}
 	}()
+
+	if response.StatusCode == http.StatusNotFound {
+		return nil, fmt.Errorf("http status %v returned", response.Status)
+	}
 
 	document, err := html.Parse(response.Body)
 	if err != nil {

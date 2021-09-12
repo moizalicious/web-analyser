@@ -14,8 +14,6 @@
    limitations under the License.
 */
 
-// TODO - Comment all files
-
 // TODO - Make UI look somewhat bearable
 
 // TODO - update readme & github repo
@@ -39,8 +37,10 @@ import (
 var app application
 
 func init() {
+	// Default port.
 	port := 8080
 
+	// Get port from environment.
 	portString := os.Getenv("APP_PORT")
 	if portString != "" {
 		appPort, err := strconv.Atoi(portString)
@@ -52,11 +52,13 @@ func init() {
 		}
 	}
 
+	// Get app mode from environment.
 	mode := os.Getenv("APP_MODE")
 	if mode == "" {
 		mode = gin.DebugMode
 	}
 
+	// Initialize application.
 	app.Init(port, mode, fetcher.NewURLFetcher())
 }
 

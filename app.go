@@ -26,13 +26,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// application is used to create and manage
+// the application logic from the main thread.
 type application struct {
 	router  *gin.Engine
 	port    int
 	fetcher fetcher.Fetcher
 }
 
+// Init is used to initialize an application instance and its router.
+// The mode parameter can only be gin.ReleaseMode or gin.DebugMode.
+// If an invalid mode is provided, then the default gin.DebugMode
+// will be used.
 func (a *application) Init(port int, mode string, f fetcher.Fetcher) {
+	// Set gin mode.
 	if mode == gin.ReleaseMode {
 		gin.SetMode(gin.ReleaseMode)
 	} else if mode != gin.DebugMode {
@@ -40,44 +47,59 @@ func (a *application) Init(port int, mode string, f fetcher.Fetcher) {
 			"starting up in default mode '%v'\n", mode, gin.DebugMode)
 	}
 
+	// Assign application variables.
 	a.port = port
 	a.router = gin.Default()
 	a.fetcher = f
 
+	// Load and set HTML templates.
 	a.router.Static("/public", "public")
 	a.router.LoadHTMLGlob("templates/*.html")
 
+	// Define routes.
 	a.router.GET("/", a.redirectToIndex)
 	a.router.GET("/index", a.index)
 	a.router.POST("/index", a.index)
 	a.router.GET("/ping", a.ping)
 }
 
+// Start will attempt to run the router and listen for requests
+// on the port provided during initialization.
 func (a *application) Start() error {
 	log.Println("[INFO] Starting application on port:", a.port)
 	return a.router.Run(":" + strconv.Itoa(a.port))
 }
 
+// Stop can be used to execute any teardown functionality
+// for the application when the service is to shutdown.
+// Note that currently there is no teardown logic as it
+// is currently not required.
 func (a *application) Stop() error {
 	log.Println("[INFO] Shutting down application")
 	return nil
 }
 
+// redirectToIndex is used to redirect the base route
+// to the index page.
 func (a *application) redirectToIndex(c *gin.Context) {
 	c.Redirect(http.StatusPermanentRedirect, "/index")
 }
 
+// index is the main route of the application,
+// used to serve both GET and POST requests.
 func (a *application) index(c *gin.Context) {
 	parameters := gin.H{}
 	parameters["title"] = "Web Analyser"
 	parameters["stylesheet"] = "public/css/index.css"
 
+	// If request method is of type GET, then return here.
 	if c.Request.Method == http.MethodGet {
 		c.HTML(http.StatusOK, "index.html", parameters)
 
 		return
 	}
 
+	// Obtain the URL entered by user from the form.
 	url := c.PostForm("url")
 	if url == "" {
 		parameters["warning"] = "Website URL must not be empty"
@@ -88,6 +110,7 @@ func (a *application) index(c *gin.Context) {
 
 	parameters["url"] = url
 
+	// Check if obtained URL is valid.
 	if u, err := netURL.Parse(url); err != nil || u.Host == "" || u.Scheme == "" {
 		parameters["warning"] = "The provided URL is not valid, please enter a valid host and scheme"
 		c.HTML(http.StatusBadRequest, "index.html", parameters)
@@ -97,6 +120,7 @@ func (a *application) index(c *gin.Context) {
 
 	log.Println("[INFO] Provided URL:", url)
 
+	// Fetch HTML document from the provided URL.
 	document, err := a.fetcher.Fetch(url)
 	if err != nil {
 		parameters["warning"] = "The provided URL does not exist/is not accessible at the moment: " + err.Error()
@@ -105,6 +129,7 @@ func (a *application) index(c *gin.Context) {
 		return
 	}
 
+	// Crawl the fetched document, and return the results identified.
 	info := crawl(document, url)
 
 	log.Println("[INFO] Crawled Output:", info)
@@ -136,6 +161,7 @@ func (a *application) index(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.html", parameters)
 }
 
+// ping is used for making sure that the application is running.
 func (a *application) ping(c *gin.Context) {
 	c.JSON(
 		http.StatusOK,

@@ -24,6 +24,8 @@ import (
 	"golang.org/x/net/html"
 )
 
+// documentInfo is used to structure the information of a
+// HTML document that can be identified by the crawler.
 type documentInfo struct {
 	htmlVersion               string
 	pageTitle                 string
@@ -34,6 +36,8 @@ type documentInfo struct {
 	containsForm              bool
 }
 
+// headingCounts is used to keep track of the count of
+// all the Heading levels in a HTML document.
 type headingCounts struct {
 	h1 int
 	h2 int
@@ -43,17 +47,22 @@ type headingCounts struct {
 	h6 int
 }
 
+// linkInfo is used to keep track of a set of
+// anchor links in a HTML document.
 type linkInfo struct {
 	count int
 	links []string
 }
 
+// link is used to define the properties of
+// a single anchor link href value.
 type link struct {
 	href         string
 	isAccessible bool
 	isExternal   bool
 }
 
+// HTML element names.
 const (
 	anchor = "a"
 	form   = "form"
@@ -67,6 +76,7 @@ const (
 	heading6 = "h6"
 )
 
+// HTML Doctype Versions.
 const (
 	htmlV401Strict       = "-//W3C//DTD HTML 4.01//EN"
 	htmlV401Transitional = "-//W3C//DTD HTML 4.01 Transitional//EN"
@@ -77,19 +87,33 @@ const (
 	xhtmlV11             = "-//W3C//DTD XHTML 1.1//EN"
 )
 
+// crawl is used to crawl through a provided HTML document and identify
+// a given set of properties. These properties are defined and returned
+// as a documentInfo struct.
+//
+// Aside from the document, a url string needs to be provided which defines
+// the url in which the document was obtained from. The reason for this
+// is so that the crawler can use this to differentiate between internally
+// and externally accessible links.
 func crawl(document *html.Node, url string) documentInfo {
+	// Initialise documentInfo struct.
 	info := documentInfo{}
 	info.accessibleInternalLinks.links = make([]string, 0)
 	info.unaccessibleInternalLinks.links = make([]string, 0)
 	info.externalLinks.links = make([]string, 0)
 
+	// Define crawler function.
 	var crawler func(*html.Node)
 
+	// Initialize crawler function.
 	crawler = func(n *html.Node) {
+		// Identify node type.
 		switch n.Type {
+		// Element node.
 		case html.ElementNode:
-
+			// Identify element type.
 			switch n.Data {
+			// <a> element.
 			case anchor:
 				l, err := identifyLinkInfo(n.Attr, url)
 				if err != nil {
@@ -104,15 +128,15 @@ func crawl(document *html.Node, url string) documentInfo {
 					info.unaccessibleInternalLinks.links = append(info.unaccessibleInternalLinks.links, l.href)
 					info.unaccessibleInternalLinks.count++
 				}
-
+			// <form> element.
 			case form:
 				info.containsForm = true
-
+			// <title> element.
 			case title:
 				if n.FirstChild != nil {
 					info.pageTitle = n.FirstChild.Data
 				}
-
+			// <h1> to <h6> elements.
 			case heading1:
 				info.headingCount.h1++
 			case heading2:
@@ -126,21 +150,25 @@ func crawl(document *html.Node, url string) documentInfo {
 			case heading6:
 				info.headingCount.h6++
 			}
-
+		// Doctype node.
 		case html.DoctypeNode:
 			info.htmlVersion = identifyHTMLVersion(n.Attr)
 		}
 
+		// Crawl through children/next sibling of current node.
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
 			crawler(c)
 		}
 	}
 
+	// Execute crawler function.
 	crawler(document)
 
 	return info
 }
 
+// identifyHTMLVersion returns the HTML version of a document that is
+// identified from the attributes of a html.DoctypeNode only.
 func identifyHTMLVersion(attributes []html.Attribute) string {
 	if len(attributes) == 0 {
 		return "HTML 5"
@@ -172,6 +200,8 @@ func identifyHTMLVersion(attributes []html.Attribute) string {
 	return ""
 }
 
+// identifyLinkInfo identifies the properties of a href attribute of a anchor element.
+// If the provided list of attributes does not contain a href value, then an error is returned.
 func identifyLinkInfo(attributes []html.Attribute, url string) (link, error) {
 	for _, attr := range attributes {
 		if attr.Key == "href" {
@@ -192,26 +222,27 @@ func identifyLinkInfo(attributes []html.Attribute, url string) (link, error) {
 	return link{}, errors.New("no href attribute available in given list")
 }
 
-// first bool isAccessible
-// second bool isExternal
-func extractLinkInfo(href string, url string) (bool, bool, error) {
+// extractLinkInfo is used to identify if a href value is
+// accessible or unaccessible, and internal or external.
+func extractLinkInfo(href string, url string) (isAccessible bool, isExternal bool, err error) {
 	h, err := netURL.Parse(href)
 	if err != nil || h.Host == "" || h.Scheme == "" {
-		// href link is not accessible, therefore it is not even external
+		// href link is not accessible, therefore it is not
+		// considered as external either.
 		return false, false, nil
 	}
 
 	u, err := netURL.Parse(url)
 	if err != nil || h.Host == "" || h.Scheme == "" {
-		// comparer link must be valid, ideally this should never happen
+		// comparer url must be valid, ideally this should never happen.
 		return false, false, errors.New("provided host url is invalid")
 	}
 
 	if h.Host == u.Host {
-		// if both hosts are the same, then the link is accessible but not external
+		// if both hosts are the same, then the link is accessible but not external.
 		return true, false, nil
 	} else {
-		// if both are different, then the link is accessible and external
+		// if both hosts are different, then the link is accessible and external.
 		return true, true, nil
 	}
 }

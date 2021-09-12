@@ -20,14 +20,19 @@ import (
 	"golang.org/x/net/html"
 )
 
+// Fetcher provides the interface with a function
+// which can be used to fetch and parse HTML content
+// from a given source.
 type Fetcher interface {
 	Fetch(string) (*html.Node, error)
 }
 
+// NewURLFetcher creates and returns a instance of urlFetcher.
 func NewURLFetcher() Fetcher {
 	return urlFetcher{}
 }
 
+// NewURLFetcher creates and returns a instance of fileFetcher.
 func NewFileFetcher() Fetcher {
 	return fileFetcher{}
 }
