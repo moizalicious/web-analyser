@@ -42,3 +42,14 @@ To run the application in `RELEASE` mode, an `APP_MODE` environment variable mus
 ```
 
 # Screenshots
+### Starting Page
+![alt index.png](https://github.com/moizalicious/web-analyser/blob/main/docs/imgs/index.png?raw=true)
+
+### Success Response
+![alt success.png](https://github.com/moizalicious/web-analyser/blob/main/docs/imgs/success.png?raw=true)
+
+### Invalid Input
+![alt invalid_input.png](https://github.com/moizalicious/web-analyser/blob/main/docs/imgs/invalid_input.png?raw=true)
+
+### 404 Page Not Found
+![alt page_not_found.png](https://github.com/moizalicious/web-analyser/blob/main/docs/imgs/page_not_found.png?raw=true)
